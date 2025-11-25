@@ -1,0 +1,163 @@
+import React, { useEffect, useState } from "react";
+import { fetchTransaksi, createTransaksi, fetchBarang } from "../../api/api";
+import { useNavigate } from "react-router-dom";
+import StaffLayout from "../../layout/staff/StaffLayout";
+
+export default function StaffTransaksi() {
+  const [transaksi, setTransaksi] = useState([]);
+  const [barangList, setBarangList] = useState([]);
+  const [idBarang, setIdBarang] = useState("");
+  const [jenis, setJenis] = useState("masuk");
+  const [jumlah, setJumlah] = useState("");
+  const [keterangan, setKeterangan] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token || role !== "staff") navigate("/login", { replace: true });
+    else {
+      loadTransaksi();
+      loadBarang();
+    }
+  }, [token, role, navigate]);
+
+  const loadTransaksi = async () => {
+    try {
+      const data = await fetchTransaksi(token);
+      setTransaksi(data || []);
+    } catch {
+      alert("Gagal load transaksi");
+    }
+  };
+
+  const loadBarang = async () => {
+    try {
+      const data = await fetchBarang(token);
+      setBarangList(data || []);
+    } catch {
+      alert("Gagal load barang");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const data = await createTransaksi({
+        id_barang: Number(idBarang),
+        jenis,
+        jumlah: Number(jumlah),
+        keterangan,
+      });
+
+      const newId = data.id || data.ID || data.Id;
+      if (newId) {
+        alert("Transaksi berhasil ditambahkan");
+        setIdBarang("");
+        setJenis("masuk");
+        setJumlah("");
+        setKeterangan("");
+        loadTransaksi();
+      } else {
+        alert("Gagal menambahkan transaksi");
+      }
+    } catch {
+      alert("Terjadi error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <StaffLayout>
+      <h1 className="text-3xl font-bold mb-6">Transaksi Staff</h1>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="mb-6 bg-white p-6 rounded shadow">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <select
+            value={idBarang}
+            onChange={(e) => setIdBarang(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="">Pilih Barang</option>
+            {barangList.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.nama}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={jenis}
+            onChange={(e) => setJenis(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="masuk">Masuk</option>
+            <option value="keluar">Keluar</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Jumlah"
+            value={jumlah}
+            onChange={(e) => setJumlah(e.target.value)}
+            className="w-full p-2 border rounded"
+            min={1}
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Keterangan (opsional)"
+            value={keterangan}
+            onChange={(e) => setKeterangan(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full mt-4 py-2 rounded text-white ${
+            loading ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"
+          }`}
+        >
+          {loading ? "Memproses..." : "Tambah Transaksi"}
+        </button>
+      </form>
+
+      {/* Table */}
+      <div className="bg-white p-6 rounded shadow">
+        <h2 className="text-xl font-semibold mb-4">Daftar Transaksi</h2>
+        <table className="w-full border-collapse border">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border">ID</th>
+              <th className="p-2 border">Barang</th>
+              <th className="p-2 border">Jenis</th>
+              <th className="p-2 border">Jumlah</th>
+              <th className="p-2 border">Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transaksi.map((t) => (
+              <tr key={t.id} className="border-b hover:bg-gray-50">
+                <td className="p-2 border">{t.id}</td>
+                <td className="p-2 border">{t.Barang?.nama || t.nama_barang}</td>
+                <td className="p-2 border capitalize">{t.jenis}</td>
+                <td className="p-2 border">{t.jumlah}</td>
+                <td className="p-2 border">{t.keterangan}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </StaffLayout>
+  );
+}

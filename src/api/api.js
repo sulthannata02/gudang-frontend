@@ -12,16 +12,21 @@ export const login = async (username, password) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-  return res.json();
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Login gagal");
+  return data;
 };
 
 export const fetchBarang = async () => {
   const res = await fetch(`${BASE_URL}/barang`, {
     headers: {
+      "Content-Type": "application/json",
       ...getTokenHeader(),
     },
   });
-  return res.json();
+  const data = await res.json();
+  return data;
 };
 
 export const createBarang = async (payload) => {
@@ -36,7 +41,6 @@ export const createBarang = async (payload) => {
   return res.json();
 };
 
-// update, delete, transaksi similarly if needed
 export const updateBarang = async (id, payload) => {
   const res = await fetch(`${BASE_URL}/barang/${id}`, {
     method: "PUT",
@@ -62,6 +66,7 @@ export const deleteBarang = async (id) => {
 export const fetchTransaksi = async () => {
   const res = await fetch(`${BASE_URL}/transaksi`, {
     headers: {
+      "Content-Type": "application/json",
       ...getTokenHeader(),
     },
   });
