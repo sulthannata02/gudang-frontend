@@ -1,54 +1,58 @@
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
+// Pages Admin
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminBarang from "./pages/admin/AdminBarang";
+import AdminTransaksi from "./pages/admin/AdminTransaksi";
+
+// Pages Staff
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import StaffTransaksi from "./pages/staff/StaffTransaksi";
+
+// Auth
 import Login from "./pages/auth/Login";
 
-// Admin Pages
-import AdminDashboard from "./pages/admin/Dashboard";
-import BarangPage from "./pages/admin/BarangPage";
-import AdminTransaksiPage from "./pages/admin/TransaksiPage";
-
-// Staff Pages
-import StaffDashboard from "./pages/staff/Dashboard";
-import StaffTransaksiPage from "./pages/staff/TransaksiPage";
-
-function App() {
+// Role Protected Route
+function ProtectedRoute({ children, roleRequired }) {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role"); // admin atau staff
+  const role = localStorage.getItem("role");
 
-  const RequireAuth = ({ children, allowedRole }) => {
-    if (!token) return <Navigate to="/login" />;
-    if (allowedRole && role !== allowedRole) return <Navigate to="/login" />;
-    return children;
-  };
+  if (!token) return <Navigate to="/login" replace />;
+  if (roleRequired && role !== roleRequired) return <Navigate to="/login" replace />;
+  return children;
+}
 
+export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Auth */}
+        {/* Login */}
         <Route path="/login" element={<Login />} />
 
         {/* Admin Routes */}
         <Route
           path="/admin/dashboard"
           element={
-            <RequireAuth allowedRole="admin">
+            <ProtectedRoute roleRequired="admin">
               <AdminDashboard />
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/admin/barang"
           element={
-            <RequireAuth allowedRole="admin">
-              <BarangPage />
-            </RequireAuth>
+            <ProtectedRoute roleRequired="admin">
+              <AdminBarang />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/admin/transaksi"
           element={
-            <RequireAuth allowedRole="admin">
-              <AdminTransaksiPage />
-            </RequireAuth>
+            <ProtectedRoute roleRequired="admin">
+              <AdminTransaksi />
+            </ProtectedRoute>
           }
         />
 
@@ -56,41 +60,23 @@ function App() {
         <Route
           path="/staff/dashboard"
           element={
-            <RequireAuth allowedRole="staff">
+            <ProtectedRoute roleRequired="staff">
               <StaffDashboard />
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/staff/transaksi"
           element={
-            <RequireAuth allowedRole="staff">
-              <StaffTransaksiPage />
-            </RequireAuth>
+            <ProtectedRoute roleRequired="staff">
+              <StaffTransaksi />
+            </ProtectedRoute>
           }
         />
 
-        {/* Default route */}
-        <Route
-          path="/"
-          element={
-            token ? (
-              role === "admin" ? (
-                <Navigate to="/admin/Dashboard" />
-              ) : (
-                <Navigate to="/staff/Dashboard" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Default */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;

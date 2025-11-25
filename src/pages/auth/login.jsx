@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../api/api";
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,20 +13,20 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await login(username, password);
+      const res = await login(username, password);
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
+      // simpan token & role di localStorage
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("role", res.role);
 
-        if (data.role === "admin") navigate("/admin/Dashboard", { replace: true });
-        else navigate("/staff/Dashboard", { replace: true });
-      } else {
-        alert("Login gagal: " + (data.error || data.message || "Username/Password salah"));
-      }
+      // update state App
+      if (onLogin) onLogin(res.token, res.role);
+
+      // redirect sesuai role
+      if (res.role === "admin") navigate("/admin/dashboard", { replace: true });
+      else navigate("/staff/dashboard", { replace: true });
     } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat login");
+      alert(err.message);
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,6 @@ export default function Login() {
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Login Gudang App
         </h1>
-
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <input
@@ -50,7 +49,6 @@ export default function Login() {
               required
             />
           </div>
-
           <div>
             <input
               type="password"
@@ -61,13 +59,11 @@ export default function Login() {
               required
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
             className={`w-full py-3 rounded-lg text-white font-semibold transition
-              ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}
-            `}
+              ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
           >
             {loading ? "Loading..." : "Login"}
           </button>
