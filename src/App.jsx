@@ -9,6 +9,7 @@ import AdminTransaksi from "./pages/admin/AdminTransaksi";
 // Pages Staff
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffTransaksi from "./pages/staff/StaffTransaksi";
+import StaffBarang from "./pages/staff/StaffBarang";
 
 // Auth
 import Login from "./pages/auth/Login";
@@ -70,6 +71,15 @@ export default function App() {
           element={
             <ProtectedRoute roleRequired="staff">
               <StaffTransaksi />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/staff/barang"
+          element={
+            <ProtectedRoute roleRequired="staff">
+              <StaffBarang />
             </ProtectedRoute>
           }
         />
