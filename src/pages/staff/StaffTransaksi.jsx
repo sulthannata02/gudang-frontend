@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { fetchTransaksi, createTransaksi, fetchBarang } from "../../api/api";
 import { useNavigate } from "react-router-dom";
 import StaffLayout from "../../layout/staff/StaffLayout";
@@ -22,6 +22,7 @@ export default function StaffTransaksi() {
       loadTransaksi();
       loadBarang();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, role, navigate]);
 
   const loadTransaksi = async () => {
@@ -42,6 +43,17 @@ export default function StaffTransaksi() {
     }
   };
 
+  // membuat map id -> nama untuk lookup cepat
+  const barangMap = useMemo(() => {
+    const map = new Map();
+    for (const b of barangList) {
+      // pastikan key konsisten (string dan number)
+      map.set(String(b.id), b.nama);
+      map.set(Number(b.id), b.nama);
+    }
+    return map;
+  }, [barangList]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -54,7 +66,7 @@ export default function StaffTransaksi() {
         keterangan,
       });
 
-      const newId = data.id || data.ID || data.Id;
+      const newId = data?.id ?? data?.ID ?? data?.Id;
       if (newId) {
         alert("Transaksi berhasil ditambahkan");
         setIdBarang("");
@@ -74,7 +86,7 @@ export default function StaffTransaksi() {
 
   return (
     <StaffLayout>
-      <h1 className="text-3xl font-bold mb-6">Transaksi Staff</h1>
+      <h1 className="text-3xl font-bold mb-6">Transaksi staff</h1>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="mb-6 bg-white p-6 rounded shadow">
@@ -138,7 +150,6 @@ export default function StaffTransaksi() {
         <table className="w-full border-collapse border">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-2 border">ID</th>
               <th className="p-2 border">Barang</th>
               <th className="p-2 border">Jenis</th>
               <th className="p-2 border">Jumlah</th>
@@ -146,15 +157,27 @@ export default function StaffTransaksi() {
             </tr>
           </thead>
           <tbody>
-            {transaksi.map((t) => (
-              <tr key={t.id} className="border-b hover:bg-gray-50">
-                <td className="p-2 border">{t.id}</td>
-                <td className="p-2 border">{t.Barang?.nama || t.nama_barang}</td>
-                <td className="p-2 border capitalize">{t.jenis}</td>
-                <td className="p-2 border">{t.jumlah}</td>
-                <td className="p-2 border">{t.keterangan}</td>
-              </tr>
-            ))}
+            {transaksi.map((t) => {
+              // lookup prioritas:
+              // 1) relasi object t.Barang.nama
+              // 2) field langsung t.nama_barang
+              // 3) lookup dari barangMap menggunakan t.id_barang
+              const barangNama =
+                t?.Barang?.nama ||
+                t?.nama_barang ||
+                barangMap.get(t.id_barang) ||
+                barangMap.get(String(t.id_barang)) ||
+                "Tidak ditemukan";
+
+              return (
+                <tr key={t.id} className="border-b hover:bg-gray-50">
+                  <td className="p-2 border">{barangNama}</td>
+                  <td className="p-2 border capitalize">{t.jenis}</td>
+                  <td className="p-2 border">{t.jumlah}</td>
+                  <td className="p-2 border">{t.keterangan}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

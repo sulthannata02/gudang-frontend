@@ -21,6 +21,12 @@ export default function StaffSidebar() {
           Transaksi
         </button>
         <button
+          onClick={() => navigate("/staff/barang")}
+          className="text-left px-3 py-2 rounded hover:bg-gray-700"
+        >
+          Daftar Barang
+        </button>
+        <button
           onClick={() => {
             localStorage.clear();
             navigate("/login");
