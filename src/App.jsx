@@ -13,6 +13,7 @@ import StaffBarang from "./pages/staff/StaffBarang";
 
 // Auth
 import Login from "./pages/auth/Login";
+import Register from "./pages/auth/register";
 
 // Role Protected Route
 function ProtectedRoute({ children, roleRequired }) {
@@ -30,6 +31,9 @@ export default function App() {
       <Routes>
         {/* Login */}
         <Route path="/login" element={<Login />} />
+
+        {/* Register*/}
+        <Route path="/register" element={<Register />} />
 
         {/* Admin Routes */}
         <Route

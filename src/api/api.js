@@ -18,6 +18,18 @@ export const login = async (username, password) => {
   return data;
 };
 
+export const register = async (username, password, role) => {
+  const res = await fetch(`${BASE_URL}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, role }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Register gagal");
+  return data;
+};
+
 export const fetchBarang = async () => {
   const res = await fetch(`${BASE_URL}/barang`, {
     headers: {
